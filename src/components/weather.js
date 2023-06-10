@@ -2,7 +2,6 @@ const axios = require("axios")
 const Debug = require("debug")
 const { join } = require("path")
 const { getCoordinates } = require("./distance")
-const { get } = require("http")
 
 require("dotenv").config({
   path: join(__dirname, "../../.env")
