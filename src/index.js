@@ -1,15 +1,20 @@
 //        EASTER EGG WORD: XALDO
 
 
-const { Telegraf } = require("telegraf")
+const { Telegraf, Markup } = require("telegraf")
 const { join } = require("path")
 const { Configuration, OpenAIApi } = require("openai")
 
-const  buttons  = require("./buttons")
+const  buttons  = require("./components/buttons")
 
-const { chooseByTemperature } = require("./telegram-openai1")
-const { chooseByRange } = require("./telegram-openai2")
+const { chooseByTemperature } = require("./components/telegram-openai1")
+const { chooseByRange } = require("./components/telegram-openai2")
 const { Key } = require("telegram-keyboard")
+
+const { getDistance } = require("./components/distance")
+const { getnews } = require("./components/news")
+const { getweather } = require("./components/weather")
+let lastcity = false
 
 require("dotenv").config({
   path: join(__dirname, "../.env")
@@ -19,6 +24,8 @@ const {
   BOT_TOKEN,
   OPENAI_API_KEY
 } = process.env
+
+console.log(BOT_TOKEN)
 
 if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN must be provided!")
@@ -42,9 +49,60 @@ bot.command("tik", (ctx) => {
   ctx.reply("tok")
 })
 
+bot.on("location", ctx => {
+  try {
+    const departureCity = ctx.message.location 
+
+    getDistance(departureCity, lastcity).then((res) => {
+    ctx.reply(res.toString())
+    })
+  } catch {
+    ctx.reply("devi scegliere prima la città")
+  }
+})
+
 /** ************************************************************************************************
  botte\bot-telegram-workshop\src
 */
+
+bot.command("distance",  async(ctx) => {
+  await ctx.reply(
+    'Special buttons keyboard',
+    Markup.keyboard([
+      Markup.button.locationRequest('Send location')
+    ]).resize()
+  )
+})
+  /* if (lastcity){
+    getDistance(ctx.message.location, lastcity).then((dist) => {
+      ctx.reply(dist)
+    })
+  } else {
+      ctx.reply("non ti ho ancora proposto nessuna città")
+    }
+  }) */
+
+bot.command("news", (ctx) => {
+  if (lastcity){
+    getNews(lastcity).then((news) => {
+      ctx.reply(news)
+    })
+  } else {
+      ctx.reply("non ti ho ancora proposto nessuna città")
+    }
+  })
+  
+bot.command("weather", (ctx) => {
+  if (lastcity){
+    getWeather(lastcity).then((weather) => {
+      ctx.reply(weather)
+    })
+  } else {
+      ctx.reply("non ti ho ancora proposto nessuna città")
+    }
+})
+
+
 
 bot.command("slT", (ctx) => {
   // ctx.reply("tok")
@@ -58,18 +116,21 @@ bot.on("callback_query", (ctx) => {
     case "temp-r1":
       chooseByTemperature("caldo").then((res) => {
         ctx.reply(res)
+        lastcity=res
       })
       console.log("caldo")
       break
     case "temp-r2":
       chooseByTemperature("mite").then((res) => {
         ctx.reply(res)
+        lastcity=res
       })
       console.log("mite")
       break
     case "temp-r3":
       chooseByTemperature("freddo").then((res) => {
         ctx.reply(res)
+        lastcity=res
       })
       console.log("freddo")
       break
