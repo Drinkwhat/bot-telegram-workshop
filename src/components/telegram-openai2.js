@@ -1,7 +1,7 @@
 const { Configuration, OpenAIApi } = require("openai");
 const { join } = require("path")
 require("dotenv").config({ 
-    path: join(__dirname, "../.env") 
+    path: join(__dirname, "../../.env") 
 })
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,19 +9,30 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
+const scelte = []
+
 module.exports = {
     chooseByRange : async (arr) => {
         
         let message = `mi trovo a ` + arr[0] + ` consigliami una  città  a ` + arr[1] + ` km in cui andare in vacanza, 
-        voglio solo il nome della città, la città non deve essere nell'array scelte`
+        voglio solamente il nome della città, la città non deve essere nell'array` + scelte
+        let completion = ""
+        let maxLimit = 0
+        do{
+            if (maxLimit === 5){
+                return 'non ho trovato città'
+            }
+            maxLimit++
 
-        const completition = await openai.createCompletion({
-            model: "text-davinci-003",
-            temperature: 0,
-            prompt: message,
-            max_tokens: 200
-        });
-        //scelte.push(completition.data.choices[0].text)
-        return completition.data.choices[0].text
+            completion = await openai.createChatCompletion({
+                model: "gpt-3.5-turbo",
+                temperature: 0.2,
+                messages: [{"role": "user", "content": message}],
+                max_tokens: 200
+            })
+        }while(scelte.includes(completion.data.choices[0].message.content) || completion.data.choices[0].message.content === '')
+
+        scelte.push(completion.data.choices[0].message.content)
+        return completion.data.choices[0].message.content
     }
 }

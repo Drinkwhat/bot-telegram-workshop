@@ -12,20 +12,24 @@ const { chooseByRange } = require("./components/telegram-openai2")
 const { Key } = require("telegram-keyboard")
 
 const { getDistance } = require("./components/distance")
-const { getnews } = require("./components/news")
-const { getweather } = require("./components/weather")
-let lastcity = false
+const { getNews } = require("./components/news")
+const { getWeather } = require("./components/weather")
+const { getInfo } = require("./components/info-request-openai")
+let lastCity = false
+
+const trad = require("./components/traduzioni.json")
 
 require("dotenv").config({
   path: join(__dirname, "../.env")
 })
+
+const stripMessage = str => str.replace(/\/\S+\s/, "")
 
 const {
   BOT_TOKEN,
   OPENAI_API_KEY
 } = process.env
 
-console.log(BOT_TOKEN)
 
 if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN must be provided!")
@@ -53,8 +57,8 @@ bot.on("location", ctx => {
   try {
     const departureCity = ctx.message.location 
 
-    getDistance(departureCity, lastcity).then((res) => {
-    ctx.reply(res.toString())
+    getDistance(departureCity, lastCity).then((res) => {
+    ctx.reply(`la distanza da ${lastCity} è ${res.toFixed(1).toString()} km`)
     })
   } catch {
     ctx.reply("devi scegliere prima la città")
@@ -67,35 +71,31 @@ bot.on("location", ctx => {
 
 bot.command("distance",  async(ctx) => {
   await ctx.reply(
-    'Special buttons keyboard',
+    'invia la tua posizione',
     Markup.keyboard([
       Markup.button.locationRequest('Send location')
     ]).resize()
   )
 })
-  /* if (lastcity){
-    getDistance(ctx.message.location, lastcity).then((dist) => {
-      ctx.reply(dist)
-    })
-  } else {
-      ctx.reply("non ti ho ancora proposto nessuna città")
-    }
-  }) */
+
 
 bot.command("news", (ctx) => {
-  if (lastcity){
-    getNews(lastcity).then((news) => {
+  if (lastCity){
+    getNews(lastCity).then((news) => {
       ctx.reply(news)
     })
   } else {
-      ctx.reply("non ti ho ancora proposto nessuna città")
-    }
-  })
+    ctx.reply("non ti ho ancora proposto nessuna città")
+  }
+})
   
 bot.command("weather", (ctx) => {
-  if (lastcity){
-    getWeather(lastcity).then((weather) => {
-      ctx.reply(weather)
+  if (lastCity){
+    getWeather(lastCity).then((weather) => {
+      let wh = weather.weather
+      console.log(trad[wh])
+      wh = (trad[wh]) ? trad[wh] : weather.weather
+      ctx.reply(`A ${lastCity} ci sono ${weather.temp}°C con un umidità di ${weather.humidity}% e il clima è ${wh}`)
     })
   } else {
       ctx.reply("non ti ho ancora proposto nessuna città")
@@ -116,21 +116,21 @@ bot.on("callback_query", (ctx) => {
     case "temp-r1":
       chooseByTemperature("caldo").then((res) => {
         ctx.reply(res)
-        lastcity=res
+        lastCity=res
       })
       console.log("caldo")
       break
     case "temp-r2":
       chooseByTemperature("mite").then((res) => {
         ctx.reply(res)
-        lastcity=res
+        lastCity=res
       })
       console.log("mite")
       break
     case "temp-r3":
       chooseByTemperature("freddo").then((res) => {
         ctx.reply(res)
-        lastcity=res
+        lastCity=res
       })
       console.log("freddo")
       break
@@ -140,8 +140,33 @@ bot.on("callback_query", (ctx) => {
 })
 
 
-// bot.command("slR", (ctx) => {
-//     ctx.reply("Keyboard test", buttons.rangeChoice.inline())});
+bot.command("slR", (ctx) => {
+  try {
+    let text = stripMessage(ctx.message.text)
+    text = text.split("-")
+    if (text.length != 2) {
+      ctx.reply("errore, il messaggio deve seguire il formato: /slR nomeCittà-distanza")
+    } else {
+      chooseByRange([text[0], text[1]]).then((res) => {
+        lastCity = res
+        ctx.reply("Una località che ti consiglio nel range di distanza che mi hai indicato è " + res)
+      })
+    }
+  } catch (error) {
+    ctx.reply("errore" + error)
+  }
+})
+
+bot.command("info", (ctx) => {
+  ctx.reply("sto scrivendo...")
+  if (lastCity){
+    getInfo(lastCity).then((news) => {
+      ctx.reply(news)
+    })
+  } else {
+    ctx.reply("non ti ho ancora proposto nessuna città")
+  }
+})
 
 
 /** ************************************************************************************************ */
@@ -153,7 +178,3 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 
 /* write here */
 
-
-// Enable graceful stop
-process.once("SIGINT", () => bot.stop("SIGINT"))
-process.once("SIGTERM", () => bot.stop("SIGTERM"))

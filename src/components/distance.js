@@ -20,7 +20,6 @@ const getCoordinates = async(location) => {
       city: location[0]
     }
   })
-  debug("Coordinates: %O", res.data)
   return {
     latitude: res.data[0].lat,
     longitude: res.data[0].lon
