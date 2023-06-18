@@ -1,14 +1,10 @@
 const axios = require("axios")
-const Debug = require("debug")
 const { join } = require("path")
 const { getCoordinates } = require("./distance")
 
 require("dotenv").config({
   path: join(__dirname, "./../../.env")
 })
-
-const debug = Debug("weather")
-Debug.enable("*")
 
 const instance = axios.create({
   baseURL: "https://api.openweathermap.org/data/3.0/onecall",

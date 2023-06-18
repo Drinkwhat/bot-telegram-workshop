@@ -18,6 +18,8 @@
     "telegram-keyboard": "^2.3.2"
   },
   "devDependencies": {
+    "@soluzioni-futura/eslint-config-soluzioni-futura": "^2.2.0",
+    "eslint": "^8.43.0",
     "nodemon": "^2.0.22"
   }
 }
