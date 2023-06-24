@@ -15,7 +15,6 @@ const instance = axios.create({
     from: "2023-05-10",
     sort: "popularity",
     language: "it"
-
   }
 })
 

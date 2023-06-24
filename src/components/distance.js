@@ -14,15 +14,15 @@ const instance = axios.create({
 })
 
 const getCoordinates = async(location) => {
+  location = location.split(",")
   const res = await instance.get("/", {
     params: {
-      city: location
+      city: location[0]
     }
   })
-  debug("Coordinates: %O", [res.data[0].lat, res.data[0].lon])
   return {
-    lat: res.data[0].lat,
-    lon: res.data[0].lon
+    latitude: res.data[0].lat,
+    longitude: res.data[0].lon
   }
 }
 
@@ -32,10 +32,10 @@ const getDistance = async(departureCity, arrivalCity) => {
   const coordinates = await getCoordinates(arrivalCity.toLowerCase().split(" ").join("%"))
 
   // Conversione delle latitudini e longitudini in radianti
-  const lat1_rad = toRadians(departureCity.lat)
-  const lon1_rad = toRadians(departureCity.lon)
-  const lat2_rad = toRadians(coordinates.lat)
-  const lon2_rad = toRadians(coordinates.lon)
+  const lat1_rad = toRadians(departureCity.latitude)
+  const lon1_rad = toRadians(departureCity.longitude)
+  const lat2_rad = toRadians(coordinates.latitude)
+  const lon2_rad = toRadians(coordinates.longitude)
 
   // Differenze tra le latitudini e longitudini
   const delta_lat = lat2_rad - lat1_rad

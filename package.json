@@ -1,23 +1,25 @@
 {
-  "name": "workshop",
+  "name": "workshop-bot",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.4.0",
-    "debug": "^4.3.4",
     "dotenv": "^16.1.4",
     "openai": "^3.2.1",
-    "telegraf": "^4.12.2"
+    "telegraf": "^4.12.2",
+    "telegram-keyboard": "^2.3.2"
   },
   "devDependencies": {
     "@soluzioni-futura/eslint-config-soluzioni-futura": "^2.2.0",
-    "eslint": "^8.42.0",
+    "eslint": "^8.43.0",
     "nodemon": "^2.0.22"
   }
 }

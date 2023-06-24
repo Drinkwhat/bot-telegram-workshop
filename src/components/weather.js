@@ -1,14 +1,10 @@
 const axios = require("axios")
-const Debug = require("debug")
 const { join } = require("path")
 const { getCoordinates } = require("./distance")
 
 require("dotenv").config({
-  path: join(__dirname, "../../.env")
+  path: join(__dirname, "./../../.env")
 })
-
-const debug = Debug("weather")
-Debug.enable("*")
 
 const instance = axios.create({
   baseURL: "https://api.openweathermap.org/data/3.0/onecall",
@@ -24,12 +20,16 @@ const getWeather = async(location) => {
   const coordinates = await getCoordinates(location)
   const res = await instance.get("", {
     params: {
-      lat: coordinates.lat,
-      lon: coordinates.lon
+      lat: coordinates.latitude,
+      lon: coordinates.longitude
     }
   })
-  debug(res.data)
-  return res.data
+  return {
+    timezone_offset: res.data.timezone_offset,
+    temp: res.data.current.temp,
+    humidity: res.data.current.humidity,
+    weather: res.data.current.weather[0].main
+  }
 }
 
 
