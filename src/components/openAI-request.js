@@ -1,5 +1,7 @@
 const { Configuration, OpenAIApi } = require("openai")
 const { join } = require("path")
+const translation = require("./translations.json")
+
 require("dotenv").config({
   path: join(__dirname, "../../.env")
 })
@@ -12,10 +14,11 @@ const openai = new OpenAIApi(configuration)
 const scelte = []
 
 const chooseByRange = async(arr) => {
-  const message = "mi trovo a " + arr[0] + " consigliami una  città  a " + arr[1] + ` km in cui andare in vacanza, 
-        voglio solamente il nome della città, la città non deve essere nell'array` + scelte
+  const message = `mi trovo a ${arr[0]} consigliami una  città  a ${arr[1]} km in cui andare in vacanza, 
+        voglio solamente il nome della città, la città non deve essere nell'array ${scelte}`
   let completion = ""
   let maxLimit = 0
+
   do {
     if (maxLimit === 5) {
       return "non ho trovato città"
@@ -35,7 +38,6 @@ const chooseByRange = async(arr) => {
 }
 
 const getInfo = async(place) => {
-
   const message = `mi trovo a ${place} quali sono 3 peculiarità di questo luogo?`
   let completion = ""
   completion = await openai.createChatCompletion({
@@ -47,21 +49,18 @@ const getInfo = async(place) => {
   return completion.data.choices[0].message.content
 }
 
-const scelteCalde = []
-const scelteFredde = []
-const scelteMiti = []
+const scelteTemperatura = {
+  caldo: [],
+  freddo: [],
+  mite: []
+}
 
 const chooseByTemperature = async(type) => {
-  let message = "consigliami un posto " + type +
-      " in cui andare in vacanza, voglio solo il nome della città e la città non deve essere nell'array scelte "
+  type = translation[type]
+  let message = `consigliami un posto ${type} in cui andare in vacanza,
+   voglio solo il nome della città e la città non deve essere nell'array scelte`
 
-  if (type === "caldo") {
-    message += scelteCalde
-  } else if (type === "freddo") {
-    message += scelteFredde
-  } else if (type === "mite") {
-    message += scelteMiti
-  }
+  message += scelteTemperatura[type].length > 0 ? scelteTemperatura[type] : ""
 
   let maxLimit = 0
 
@@ -80,15 +79,9 @@ const chooseByTemperature = async(type) => {
     })
     choice = completion.data.choices[0].message.content
 
-  } while (scelteFredde.includes(choice) || scelteCalde.includes(choice) || scelteMiti.includes(choice) || choice === "")
-  if (type === "caldo") {
-    scelteCalde.push(choice)
-  } else if (type === "freddo") {
-    scelteFredde.push(choice)
-  } else if (type === "mite") {
-    scelteMiti.push(choice)
-  }
+  } while (scelteTemperatura.freddo.includes(choice) || scelteTemperatura.caldo.includes(choice) || scelteTemperatura.mite.includes(choice) || choice === "")
 
+  scelteTemperatura[type].push(choice)
   return choice
 }
 

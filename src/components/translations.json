@@ -6,5 +6,8 @@
   "Drizzle": "molto piovoso",
   "Snow": "nevoso",
   "Mist": "nebbioso",
-  "Fog": "nebbioso"
+  "Fog": "nebbioso",
+  "hot": "caldo",
+  "cold": "freddo",
+  "mild": "mite"
 }

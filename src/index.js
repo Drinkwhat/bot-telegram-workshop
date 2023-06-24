@@ -1,6 +1,6 @@
 // telegram
 const { Telegraf, Markup } = require("telegraf")
-const  buttons  = require("./components/buttons")
+const  { tempChoice }  = require("./components/buttons")
 
 
 // openai
@@ -11,7 +11,7 @@ const { getDistance } = require("./components/distance")
 const { getNews } = require("./components/news")
 const { getWeather } = require("./components/weather")
 
-const trad = require("./components/traduzioni.json")
+const trad = require("./components/traslations.json")
 const { join } = require("path")
 require("dotenv").config({
   path: join(__dirname, "../.env")
@@ -43,8 +43,15 @@ bot.start((ctx) => {
   ctx.reply("Hello World!")
 })
 
-bot.command("tik", (ctx) => {
-  ctx.reply("tok")
+// dice all'utente che ha inviato la posizione la distanza dalla l'ultima città proposta
+
+bot.command("distance",  async(ctx) => {
+  await ctx.reply(
+    "invia la tua posizione",
+    Markup.keyboard([
+      Markup.button.locationRequest("Send location")
+    ]).resize()
+  )
 })
 
 bot.on("location", async(ctx) => {
@@ -58,17 +65,7 @@ bot.on("location", async(ctx) => {
   }
 })
 
-
-bot.command("distance",  async(ctx) => {
-  await ctx.reply(
-    "invia la tua posizione",
-    Markup.keyboard([
-      Markup.button.locationRequest("Send location")
-    ]).resize()
-  )
-})
-
-
+// dice all'utente la descrizione della città proposta
 bot.command("news", (ctx) => {
   if (lastCity) {
     getNews(lastCity).then((news) => {
@@ -79,6 +76,7 @@ bot.command("news", (ctx) => {
   }
 })
 
+// dice all'utente il meteo della città proposta
 bot.command("weather", (ctx) => {
   if (lastCity) {
     getWeather(lastCity).then((weather) => {
@@ -91,45 +89,27 @@ bot.command("weather", (ctx) => {
   }
 })
 
-
+// select by temperature
 bot.command("slT", (ctx) => {
-  ctx.reply("Quale temperatura preferisci per la tua vacanza", buttons.tempChoice.inline())
+  ctx.reply("Quale temperatura preferisci per la tua vacanza", tempChoice.inline())
 })
 
 
 bot.on("callback_query", (ctx) => {
   ctx.answerCbQuery()
-  switch (ctx.callbackQuery.data) {
-    case "temp-r1":
-      chooseByTemperature("caldo").then((res) => {
-        ctx.reply(res)
-        lastCity = res
-      })
-      break
-    case "temp-r2":
-      chooseByTemperature("mite").then((res) => {
-        ctx.reply(res)
-        lastCity = res
-      })
-      break
-    case "temp-r3":
-      chooseByTemperature("freddo").then((res) => {
-        ctx.reply(res)
-        lastCity = res
-      })
-      break
-    default:
-      ctx.reply("opzione disabile")
-  }
+  chooseByTemperature(ctx.callbackQuery.data).then((res) => {
+    ctx.reply(res)
+    lastCity = res
+  })
 })
 
-
+// select by range
 bot.command("slR", (ctx) => {
   try {
     let text = stripMessage(ctx.message.text)
     text = text.split("-")
     if (text.length !== 2) {
-      ctx.reply("errore, il messaggio deve seguire il formato: /slR nomeCittà-distanza")
+      ctx.reply("errore, il messaggio deve seguire il formato: /slR nomeCittà-distanza in km")
     } else {
       chooseByRange([text[0], text[1]]).then((res) => {
         lastCity = res
